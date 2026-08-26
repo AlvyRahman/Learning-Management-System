@@ -1,5 +1,5 @@
 export default {
-  async assignRole(ctx) {
+  async assignRole(ctx: any) {
     const requestingUser = ctx.state.user;
 
     if (!requestingUser) {
