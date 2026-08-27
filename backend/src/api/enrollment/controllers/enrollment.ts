@@ -14,6 +14,11 @@ export default factories.createCoreController('api::enrollment.enrollment', ({ s
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('You must be logged in');
 
+    const roleType = await getRole(strapi, user.id);
+    if (roleType !== 'student') {
+      return ctx.forbidden('Only students can enroll in courses');
+    }
+
     const courseDocId = ctx.request.body?.data?.course;
     if (!courseDocId) return ctx.badRequest('course is required');
 

@@ -14,6 +14,13 @@ export default {
       return ctx.badRequest('Authentication required');
     }
 
+    const requestingUser = await strapi.db
+      .query('plugin::users-permissions.user')
+      .findOne({ where: { id: user.id }, populate: ['role'] });
+    if (requestingUser?.role?.type !== 'student') {
+      return ctx.forbidden('Only students can take quizzes');
+    }
+
     const { quiz: quizDocumentId, answers } = ctx.request.body || {};
 
     if (!quizDocumentId || !Array.isArray(answers)) {
