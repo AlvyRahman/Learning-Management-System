@@ -1,4 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+function normalizeUrl(url: string): string {
+  const trimmed = url.trim().replace(/\/+$/, '');
+  if (!trimmed) return 'http://localhost:1337';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+const API_URL = normalizeUrl(process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337');
 
 import type { StrapiUser } from './types';
 
