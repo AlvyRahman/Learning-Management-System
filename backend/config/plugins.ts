@@ -28,6 +28,7 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
       jwtManagement: 'refresh',
       sessions: {
         httpOnly: true,
+        accessTokenLifespan: 7 * 24 * 60 * 60, // 7 days: deliberate scope call (short access + refresh rotation given more time)
       },
     },
   },
