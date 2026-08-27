@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -12,15 +12,31 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.prose-strapi h1, .prose-strapi h2, .prose-strapi h3 {
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem;
+  color: #fafafa;
+}
+.prose-strapi h1 { font-size: 1.875rem; }
+.prose-strapi h2 { font-size: 1.5rem; }
+.prose-strapi h3 { font-size: 1.25rem; }
+.prose-strapi p { margin: 0.75rem 0; line-height: 1.7; color: #e4e4e7; }
+.prose-strapi ul, .prose-strapi ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+.prose-strapi ul { list-style: disc; }
+.prose-strapi ol { list-style: decimal; }
+.prose-strapi li { margin: 0.25rem 0; color: #e4e4e7; }
+.prose-strapi a { color: #3b82f6; text-decoration: underline; }
+.prose-strapi strong { color: #fafafa; font-weight: 600; }
+.prose-strapi blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #a1a1aa;
+  font-style: italic;
 }
