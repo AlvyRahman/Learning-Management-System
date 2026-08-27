@@ -1,6 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
 const config: Core.Config.Middlewares = [
+  'global::attach-user-role',
   'strapi::logger',
   'strapi::errors',
   'strapi::security',
