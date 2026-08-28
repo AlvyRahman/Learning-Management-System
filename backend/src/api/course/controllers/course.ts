@@ -18,6 +18,16 @@ function stripEnrollments(payload: any, ownerId: number | null | undefined) {
   }
 }
 
+function stripLockedContent(payload: any, accessibleIds: Set<number>, allowAll: boolean) {
+  const entries = Array.isArray(payload) ? payload : payload ? [payload] : [];
+  for (const entry of entries) {
+    if (!allowAll && !accessibleIds.has(entry.id)) {
+      delete entry.lessons;
+      delete entry.quizzes;
+    }
+  }
+}
+
 const NEVER_OWNER = -1;
 
 export default factories.createCoreController('api::course.course', ({ strapi }) => ({
@@ -37,6 +47,22 @@ export default factories.createCoreController('api::course.course', ({ strapi })
       stripEnrollments(result.data, roleType === 'instructor' ? user.id : NEVER_OWNER);
     }
 
+    let accessible = new Set<number>(); let allowAll = false;
+    if (roleType === 'instructor') {
+      const courses = await strapi.db
+        .query('api::course.course')
+        .findMany({ where: { instructor: { id: user.id } } });
+      accessible = new Set((courses || []).map((c: any) => c.id));
+    } else if (roleType === 'student') {
+      const enrollments = await strapi.db
+        .query('api::enrollment.enrollment')
+        .findMany({ where: { student: user.id }, populate: { course: true }, limit: 500 });
+      accessible = new Set((enrollments || []).map((e: any) => e.course?.id).filter(Boolean));
+    } else if (user) {
+      allowAll = true;
+    }
+    stripLockedContent(result.data, accessible, allowAll);
+
     return result;
   },
 
@@ -55,6 +81,22 @@ export default factories.createCoreController('api::course.course', ({ strapi })
     if (!user || roleType === 'student' || roleType === 'instructor') {
       stripEnrollments(result?.data, roleType === 'instructor' ? user.id : NEVER_OWNER);
     }
+
+    let accessible = new Set<number>(); let allowAll = false;
+    if (roleType === 'instructor') {
+      const courses = await strapi.db
+        .query('api::course.course')
+        .findMany({ where: { instructor: { id: user.id } } });
+      accessible = new Set((courses || []).map((c: any) => c.id));
+    } else if (roleType === 'student') {
+      const enrollments = await strapi.db
+        .query('api::enrollment.enrollment')
+        .findMany({ where: { student: user.id }, populate: { course: true }, limit: 500 });
+      accessible = new Set((enrollments || []).map((e: any) => e.course?.id).filter(Boolean));
+    } else if (user) {
+      allowAll = true;
+    }
+    stripLockedContent(result?.data, accessible, allowAll);
 
     return result;
   },
