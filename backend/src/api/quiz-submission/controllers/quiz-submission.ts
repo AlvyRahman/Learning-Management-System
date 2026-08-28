@@ -29,11 +29,21 @@ export default {
 
     const quiz = await strapi.db.query('api::quiz.quiz').findOne({
       where: { documentId: quizDocumentId },
-      populate: { questions: true },
+      populate: { questions: true, course: true },
     });
 
     if (!quiz) {
       return ctx.notFound('Quiz not found');
+    }
+
+    const myEnrollments = await strapi.db
+      .query('api::enrollment.enrollment')
+      .findMany({ where: { student: user.id }, populate: { course: true }, limit: 500 });
+    const enrolled =
+      (myEnrollments || []).some((e: any) => e.course?.id === quiz.course?.id);
+
+    if (!enrolled) {
+      return ctx.forbidden('You must be enrolled in this course to take the quiz');
     }
 
     const questions = quiz.questions || [];
