@@ -227,16 +227,17 @@ export default function CourseDetailPage() {
               {quizzes.length > 0 && ` · ${quizzes.length} quiz${quizzes.length !== 1 ? 'zes' : ''}`}
             </p>
 
-            {course.instructor && (
+            {course.instructor?.username && (
               <p className="mt-3 text-sm text-zinc-400">
                 Instructor:{' '}
                 <span className="font-medium text-zinc-200">
                   {course.instructor.username}
-                  {roleLabel(course.instructor.role?.type || '') !== 'Student' && (
-                    <span className="ml-1 text-xs text-zinc-500">
-                      ({roleLabel(course.instructor.role?.type || '')})
-                    </span>
-                  )}
+                  {course.instructor.role?.type &&
+                    roleLabel(course.instructor.role?.type) !== 'Student' && (
+                      <span className="ml-1 text-xs text-zinc-500">
+                        ({roleLabel(course.instructor.role?.type)})
+                      </span>
+                    )}
                 </span>
               </p>
             )}
