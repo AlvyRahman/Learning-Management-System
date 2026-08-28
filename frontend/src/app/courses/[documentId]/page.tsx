@@ -222,10 +222,16 @@ export default function CourseDetailPage() {
         <aside className="lg:sticky lg:top-20 lg:h-fit">
           <Card className="p-6">
             <h1 className="text-2xl font-bold text-white">{course.title}</h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              {lessons.length} lesson{lessons.length !== 1 ? 's' : ''}
-              {quizzes.length > 0 && ` · ${quizzes.length} quiz${quizzes.length !== 1 ? 'zes' : ''}`}
-            </p>
+            {enrollment || isStaff ? (
+              <p className="mt-1 text-sm text-zinc-500">
+                {lessons.length} lesson{lessons.length !== 1 ? 's' : ''}
+                {quizzes.length > 0 && ` · ${quizzes.length} quiz${quizzes.length !== 1 ? 'zes' : ''}`}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-zinc-500">
+                {user ? 'Enroll to view lessons.' : 'Sign in to view lessons.'}
+              </p>
+            )}
 
             {course.instructor?.username && (
               <p className="mt-3 text-sm text-zinc-400">
