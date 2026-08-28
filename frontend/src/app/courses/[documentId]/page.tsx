@@ -229,7 +229,7 @@ export default function CourseDetailPage() {
               </p>
             ) : (
               <p className="mt-1 text-sm text-zinc-500">
-                {user ? 'Enroll to view lessons.' : 'Sign in to view lessons.'}
+                {user ? 'Enroll to view lessons.' : 'Log in and enroll to view lessons.'}
               </p>
             )}
 
