@@ -16,6 +16,7 @@ export default function Navbar() {
     navLinks.push({ href: '/dashboard', label: 'Dashboard' });
   }
   if (role === 'admin') {
+    navLinks.push({ href: '/admin', label: 'Admin' });
     navLinks.push({ href: '/admin/users', label: 'Users' });
   }
   if (role === 'student') {
