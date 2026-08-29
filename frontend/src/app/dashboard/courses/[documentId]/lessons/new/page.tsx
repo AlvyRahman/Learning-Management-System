@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { apiGet, apiPost, errorMessage } from '@/lib/api';
 import { Course, Lesson } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/components/AuthProvider';
 import { Button, Input } from '@/components/ui';
 
 function NewLessonForm() {
   const params = useParams<{ documentId: string }>();
   const router = useRouter();
+  const { user, role } = useAuth();
   const courseId = params.documentId;
 
   const [title, setTitle] = useState('');
@@ -20,11 +22,18 @@ function NewLessonForm() {
   const [availableOrders, setAvailableOrders] = useState<string[]>(['1']);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [notAllowed, setNotAllowed] = useState(false);
+  const [courseLoaded, setCourseLoaded] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await apiGet<Course>('/courses/' + courseId + '?populate=lessons');
+        setNotAllowed(
+          role === 'instructor' &&
+            Boolean(res.data.instructor?.id) &&
+            res.data.instructor!.id !== user?.id
+        );
         const lessons = res.data.lessons || [];
         const taken = new Set(
           lessons.flatMap((l: Lesson) => (typeof l.order === 'number' ? [l.order] : []))
@@ -39,10 +48,12 @@ function NewLessonForm() {
       } catch {
         setAvailableOrders(['1']);
         setOrder('1');
+      } finally {
+        setCourseLoaded(true);
       }
     };
     load();
-  }, [courseId]);
+  }, [courseId, role, user]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +79,23 @@ function NewLessonForm() {
       setSubmitting(false);
     }
   };
+
+  if (courseLoaded && notAllowed) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-12">
+        <Link href="/dashboard" className="text-sm text-blue-500 hover:text-blue-400">
+          ← Dashboard
+        </Link>
+        <div className="mt-4 rounded-lg border border-red-800/50 bg-red-600/10 px-5 py-6">
+          <h1 className="text-xl font-bold text-red-400">403 — Not allowed</h1>
+          <p className="mt-2 text-sm text-zinc-300">
+            You can only manage courses you own. This course belongs to another instructor or an
+            admin.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">

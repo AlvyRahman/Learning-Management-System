@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { apiGet, apiPut, apiDelete, errorMessage } from '@/lib/api';
 import { Course, Lesson } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/components/AuthProvider';
 import { Button, Card, Input, Badge } from '@/components/ui';
 
 function CourseManage() {
   const params = useParams<{ documentId: string }>();
   const router = useRouter();
+  const { user, role } = useAuth();
   const courseId = params.documentId;
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -22,6 +24,7 @@ function CourseManage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [notAllowed, setNotAllowed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -29,6 +32,11 @@ function CourseManage() {
         populate: 'lessons,quizzes',
       });
       setCourse(res.data);
+      setNotAllowed(
+        role === 'instructor' &&
+          Boolean(res.data.instructor?.id) &&
+          res.data.instructor!.id !== user?.id
+      );
       setTitle(res.data.title);
       setDescription(res.data.description || '');
       setCoverUrl(res.data.coverUrl || '');
@@ -37,7 +45,7 @@ function CourseManage() {
     } finally {
       setLoading(false);
     }
-  }, [courseId]);
+  }, [courseId, role, user]);
 
   useEffect(() => {
     load();
@@ -105,6 +113,23 @@ function CourseManage() {
     return (
       <div className="mx-auto max-w-4xl px-6 py-12">
         <p className="text-zinc-400">{error}</p>
+      </div>
+    );
+  }
+
+  if (notAllowed) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-12">
+        <Link href="/dashboard" className="text-sm text-blue-500 hover:text-blue-400">
+          ← Dashboard
+        </Link>
+        <div className="mt-4 rounded-lg border border-red-800/50 bg-red-600/10 px-5 py-6">
+          <h1 className="text-xl font-bold text-red-400">403 — Not allowed</h1>
+          <p className="mt-2 text-sm text-zinc-300">
+            You can only manage courses you own. This course belongs to another instructor or an
+            admin.
+          </p>
+        </div>
       </div>
     );
   }
