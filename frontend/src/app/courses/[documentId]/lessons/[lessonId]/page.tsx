@@ -151,15 +151,16 @@ function LessonView() {
           </p>
           <h1 className="mt-1 text-3xl font-bold text-white">{lesson.title}</h1>
         </div>
-        {progress?.completed ? (
-          <span className="rounded-full bg-emerald-600/15 px-3 py-1 text-sm font-medium text-emerald-400">
-            ✓ Completed
-          </span>
-        ) : (
-          <Button onClick={markComplete} disabled={saving} variant="secondary">
-            {saving ? 'Saving...' : 'Mark complete'}
-          </Button>
-        )}
+        {role === 'student' &&
+          (progress?.completed ? (
+            <span className="rounded-full bg-emerald-600/15 px-3 py-1 text-sm font-medium text-emerald-400">
+              ✓ Completed
+            </span>
+          ) : (
+            <Button onClick={markComplete} disabled={saving} variant="secondary">
+              {saving ? 'Saving...' : 'Mark complete'}
+            </Button>
+          ))}
       </div>
 
       {lesson.videoUrl && (
