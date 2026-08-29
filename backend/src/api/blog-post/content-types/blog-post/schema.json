@@ -7,7 +7,7 @@
     "displayName": "BlogPost"
   },
   "options": {
-    "draftAndPublish": false
+    "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
