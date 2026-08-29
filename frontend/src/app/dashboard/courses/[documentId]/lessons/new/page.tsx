@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiPost, errorMessage } from '@/lib/api';
-import { Lesson } from '@/lib/types';
+import { apiGet, apiPost, errorMessage } from '@/lib/api';
+import { Course, Lesson } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button, Input } from '@/components/ui';
 
@@ -17,8 +17,32 @@ function NewLessonForm() {
   const [content, setContent] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [order, setOrder] = useState('1');
+  const [availableOrders, setAvailableOrders] = useState<string[]>(['1']);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await apiGet<Course>('/courses/' + courseId + '?populate=lessons');
+        const lessons = res.data.lessons || [];
+        const taken = new Set(
+          lessons.flatMap((l: Lesson) => (typeof l.order === 'number' ? [l.order] : []))
+        );
+        const options: string[] = [];
+        for (let n = 1; n <= lessons.length + 1; n++) {
+          if (!taken.has(n)) options.push(String(n));
+        }
+        if (options.length === 0) options.push(String(lessons.length + 1));
+        setAvailableOrders(options);
+        setOrder(options[0]);
+      } catch {
+        setAvailableOrders(['1']);
+        setOrder('1');
+      }
+    };
+    load();
+  }, [courseId]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +82,20 @@ function NewLessonForm() {
       <form onSubmit={submit} className="flex flex-col gap-5">
         <Input label="Lesson title" value={title} onChange={setTitle} placeholder="e.g. HTML Basics" />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Input label="Order" type="number" value={order} onChange={setOrder} />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-zinc-300">Order</label>
+            <select
+              value={order}
+              onChange={(e) => setOrder(e.target.value)}
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            >
+              {availableOrders.map((n) => (
+                <option key={n} value={n}>
+                  Lesson {n}
+                </option>
+              ))}
+            </select>
+          </div>
           <Input
             label="Video URL (optional)"
             value={videoUrl}

@@ -172,7 +172,7 @@ function CourseManage() {
           <Card className="divide-y divide-zinc-800">
             {lessons.map((lesson, i) => (
               <div key={lesson.documentId} className="flex items-center gap-3 px-5 py-3">
-                <span className="w-5 text-xs text-zinc-500">{lesson.order ?? i + 1}</span>
+                <span className="w-5 text-xs text-zinc-500">{i + 1}</span>
                 <span className="flex-1 text-sm text-zinc-200">{lesson.title}</span>
                 <Link
                   href={`/dashboard/courses/${course.documentId}/lessons/${lesson.documentId}/edit`}
