@@ -7,6 +7,12 @@ import scopedFind from '../../../utils/scoped-find';
 import sanitizeUserFields from '../../../utils/sanitize-user-fields';
 
 export default factories.createCoreController('api::quiz-attempt.quiz-attempt', ({ strapi }) => ({
+  async create(ctx) {
+    return ctx.forbidden(
+      'Quiz attempts are created only by submitting answers via POST /quiz-attempts/submit'
+    );
+  },
+
   async find(ctx) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized('You must be logged in');
