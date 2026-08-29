@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiGet, apiPut, apiDelete, errorMessage } from '@/lib/api';
+import { apiGet, apiPost, apiPut, apiDelete, errorMessage } from '@/lib/api';
 import { Course, Lesson } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/components/AuthProvider';
@@ -137,6 +137,22 @@ function CourseManage() {
   const lessons = [...(course.lessons || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
   const quizzes = course.quizzes || [];
 
+  const moveLesson = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= lessons.length) return;
+    const ordered = lessons.map((l) => l.documentId);
+    [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+    setError(null);
+    try {
+      await apiPost('/lessons/reorder', {
+        data: { course: course.documentId, lessons: ordered },
+      });
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <Link href="/dashboard" className="text-sm text-blue-500 hover:text-blue-400">
@@ -199,6 +215,26 @@ function CourseManage() {
               <div key={lesson.documentId} className="flex items-center gap-3 px-5 py-3">
                 <span className="w-5 text-xs text-zinc-500">{i + 1}</span>
                 <span className="flex-1 text-sm text-zinc-200">{lesson.title}</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveLesson(i, -1)}
+                    disabled={i === 0}
+                    className="rounded border border-zinc-700 px-1.5 py-0.5 text-xs text-zinc-300 transition hover:border-blue-500 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    title="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveLesson(i, 1)}
+                    disabled={i === lessons.length - 1}
+                    className="rounded border border-zinc-700 px-1.5 py-0.5 text-xs text-zinc-300 transition hover:border-blue-500 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    title="Move down"
+                  >
+                    ↓
+                  </button>
+                </div>
                 <Link
                   href={`/dashboard/courses/${course.documentId}/lessons/${lesson.documentId}/edit`}
                   className="text-xs text-blue-500 hover:text-blue-400"

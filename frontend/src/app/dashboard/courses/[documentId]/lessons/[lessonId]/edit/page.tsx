@@ -17,7 +17,6 @@ function EditLessonForm() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
-  const [order, setOrder] = useState('1');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -29,7 +28,6 @@ function EditLessonForm() {
       setTitle(lesson.title || '');
       setContent(lesson.content || '');
       setVideoUrl(lesson.videoUrl || '');
-      setOrder(String(lesson.order ?? 1));
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -51,7 +49,6 @@ function EditLessonForm() {
           title,
           content: content || null,
           videoUrl: videoUrl || null,
-          order: Number(order) || 1,
         },
       });
       router.push(`/dashboard/courses/${courseId}/edit`);
@@ -81,15 +78,12 @@ function EditLessonForm() {
 
       <form onSubmit={save} className="flex flex-col gap-5">
         <Input label="Lesson title" value={title} onChange={setTitle} />
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Input label="Order" type="number" value={order} onChange={setOrder} />
-          <Input
-            label="Video URL (optional)"
-            value={videoUrl}
-            onChange={setVideoUrl}
-            placeholder="https://example.com/video.mp4"
-          />
-        </div>
+        <Input
+          label="Video URL (optional)"
+          value={videoUrl}
+          onChange={setVideoUrl}
+          placeholder="https://example.com/video.mp4"
+        />
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-zinc-300">Content (markdown or HTML)</label>
           <textarea
