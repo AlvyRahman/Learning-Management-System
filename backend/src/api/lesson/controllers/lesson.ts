@@ -16,12 +16,8 @@ async function userRole(ctx: any): Promise<string | null> {
 }
 
 async function accessibleCourseIds(userId: number, roleType: string | null): Promise<number[]> {
-  if (roleType === 'admin' || roleType === 'content_manager') return [-1];
-  if (roleType === 'instructor') {
-    const courses = await strapi.db
-      .query('api::course.course')
-      .findMany({ where: { instructor: { id: userId } } });
-    return (courses || []).map((c: any) => c.id);
+  if (roleType === 'admin' || roleType === 'content_manager' || roleType === 'instructor') {
+    return [-1];
   }
   if (roleType === 'student') {
     const enrollments = await strapi.db

@@ -134,15 +134,6 @@ export default {
       if (!enrolled) {
         return ctx.forbidden('You must be enrolled in this course to take the quiz');
       }
-    } else if (roleType === 'instructor') {
-      const courseId = quiz.course?.id;
-      const courses = await strapi.db
-        .query('api::course.course')
-        .findMany({ where: { instructor: { id: user.id } } });
-      const ownsCourse = (courses || []).some((c: any) => c.id === courseId);
-      if (!ownsCourse) {
-        return ctx.forbidden('You can only access quizzes of your own courses');
-      }
     }
 
     const questions = await strapi.db.query('api::question.question').findMany({
