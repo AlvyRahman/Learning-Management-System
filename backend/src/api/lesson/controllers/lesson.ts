@@ -36,6 +36,19 @@ function seenCourseId(lesson: any): number | undefined {
   return lesson?.course?.id;
 }
 
+async function orderTaken(courseId: number, order: number, excludeId?: number): Promise<boolean> {
+  const where: any = { course: courseId, order };
+  if (excludeId) where.id = { $ne: excludeId };
+  const existing = await strapi.db.query(uid).findOne({ where });
+  return Boolean(existing);
+}
+
+function numericOrder(data: any): number | null {
+  if (data.order === undefined || data.order === null) return null;
+  const order = Number(data.order);
+  return Number.isNaN(order) ? null : order;
+}
+
 export default factories.createCoreController(uid, ({ strapi }) => ({
   async find(ctx) {
     const user = ctx.state.user;
@@ -88,6 +101,13 @@ export default factories.createCoreController(uid, ({ strapi }) => ({
       courseId = course.id;
     }
 
+    const order = numericOrder(data);
+    if (courseId && order !== null) {
+      if (await orderTaken(courseId, order)) {
+        return ctx.badRequest(`A lesson with order ${order} already exists in this course`);
+      }
+    }
+
     const entry = await strapi.entityService.create(uid, {
       data: {
         ...data,
@@ -96,5 +116,26 @@ export default factories.createCoreController(uid, ({ strapi }) => ({
     });
 
     return { data: entry };
+  },
+
+  async update(ctx) {
+    const order = numericOrder(ctx.request.body?.data || {});
+    if (order !== null) {
+      const entry = await strapi.documents(uid).findOne({
+        documentId: ctx.params.id,
+        populate: { course: { fields: ['id'] } },
+      });
+      const courseId = seenCourseId(entry as any);
+      if (courseId) {
+        const selfId = (entry as any)?.id;
+        if (await orderTaken(courseId, order, selfId)) {
+          return ctx.badRequest(
+            `A lesson with order ${order} already exists in this course`
+          );
+        }
+      }
+    }
+
+    return super.update(ctx);
   },
 }));
