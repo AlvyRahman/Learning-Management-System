@@ -92,7 +92,6 @@ export default function CourseDetailPage() {
   const ownCourse = course.instructor?.id === user?.id;
   const isStaff = hasRole('admin', 'content_manager', 'instructor');
   const canManage = ownCourse || hasRole('admin', 'content_manager');
-  const canPreviewQuiz = canManage;
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
@@ -191,15 +190,13 @@ export default function CourseDetailPage() {
                         >
                           Take quiz
                         </Link>
-                      ) : canPreviewQuiz ? (
+                      ) : isStaff ? (
                         <Link
                           href={`/quiz/${quiz.documentId}`}
                           className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 transition hover:border-zinc-500"
                         >
                           Preview
                         </Link>
-                      ) : isStaff ? (
-                        <span />
                       ) : (
                         <span className="text-xs text-zinc-500">Enroll to take</span>
                       )}
@@ -285,6 +282,10 @@ export default function CourseDetailPage() {
                       </Button>
                       {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
                     </>
+                  ) : isStaff && !canManage ? (
+                    <p className="text-xs text-zinc-500">
+                      Staff preview — only the course owner can edit this course.
+                    </p>
                   ) : (
                     <p className="text-xs text-zinc-500">
                       Course content is managed through the content tools.
