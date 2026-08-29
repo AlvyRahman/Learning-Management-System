@@ -5,12 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { apiGet, apiPost, errorMessage } from '@/lib/api';
 import { Quiz, Question } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/components/AuthProvider';
 import { Button, Card } from '@/components/ui';
 
 function QuizView() {
   const params = useParams<{ documentId: string }>();
   const router = useRouter();
+  const { role } = useAuth();
   const quizId = params.documentId;
+  const isStaff = role !== 'student';
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -122,9 +125,15 @@ function QuizView() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{quiz.title}</h1>
         <span className="rounded-full bg-zinc-800 px-3 py-1 text-xs text-zinc-400">
-          {answeredCount}/{questions.length} answered
+          {isStaff ? 'Staff preview' : `${answeredCount}/${questions.length} answered`}
         </span>
       </div>
+
+      {isStaff && (
+        <p className="mb-6 rounded-lg border border-amber-800/50 bg-amber-600/10 px-3 py-2 text-sm text-amber-400">
+          Preview only — only enrolled students can submit this quiz.
+        </p>
+      )}
 
       <div className="space-y-6">
         {questions.map((question, qi) => (
@@ -136,18 +145,21 @@ function QuizView() {
               {(Array.isArray(question.options) ? question.options : []).map((option, oi) => (
                 <button
                   key={oi}
+                  disabled={isStaff}
                   onClick={() =>
                     setAnswers((prev) => prev.map((a, i) => (i === qi ? oi : a)))
                   }
                   className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition ${
-                    answers[qi] === oi
-                      ? 'border-blue-500 bg-blue-600/10 text-white'
-                      : 'border-zinc-700 bg-zinc-900/50 text-zinc-300 hover:border-zinc-500'
+                    isStaff
+                      ? 'cursor-default border-zinc-700 bg-zinc-900/50 text-zinc-300'
+                      : answers[qi] === oi
+                        ? 'border-blue-500 bg-blue-600/10 text-white'
+                        : 'border-zinc-700 bg-zinc-900/50 text-zinc-300 hover:border-zinc-500'
                   }`}
                 >
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
-                      answers[qi] === oi ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'
+                      answers[qi] === oi && !isStaff ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'
                     }`}
                   >
                     {String.fromCharCode(65 + oi)}
@@ -166,15 +178,17 @@ function QuizView() {
         </p>
       )}
 
-      <div className="mt-8">
-        <Button
-          onClick={submit}
-          disabled={submitting || answeredCount < questions.length}
-          className="w-full !py-3 text-base"
-        >
-          {submitting ? 'Grading...' : 'Submit quiz'}
-        </Button>
-      </div>
+      {!isStaff && (
+        <div className="mt-8">
+          <Button
+            onClick={submit}
+            disabled={submitting || answeredCount < questions.length}
+            className="w-full !py-3 text-base"
+          >
+            {submitting ? 'Grading...' : 'Submit quiz'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
