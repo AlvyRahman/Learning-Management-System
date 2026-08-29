@@ -61,7 +61,7 @@ function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="mb-8 text-3xl font-bold text-white">Admin Dashboard</h1>
+      <h1 className="mb-8 text-3xl font-bold text-white">Stats</h1>
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
