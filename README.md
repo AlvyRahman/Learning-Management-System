@@ -53,11 +53,11 @@ Visit `http://localhost:3000`.
 
 ## Features Completed
 
-- [ ] Authentication + role-based access control
-- [ ] Course management (Admin / Content Manager / Instructor)
-- [ ] Student enrollment + "My Courses"
-- [ ] Lesson viewing
-- [ ] Progress tracking (% per course)
-- [ ] MCQ quizzes with auto-grading
-- [ ] Admin dashboard (user roles, stats)
-- [ ] Blog with draft/publish workflow
+- [x] Authentication + role-based access control
+- [x] Course management (Admin / Content Manager / Instructor)
+- [x] Student enrollment + "My Courses"
+- [x] Lesson viewing
+- [x] Progress tracking (% per course)
+- [x] MCQ quizzes with auto-grading
+- [x] Admin dashboard (user roles, stats)
+- [x] Blog with draft/publish workflow
