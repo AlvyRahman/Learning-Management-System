@@ -15,7 +15,7 @@ function NewPost() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const create = async () => {
+  const create = async (publish: boolean) => {
     setError(null);
     if (!title.trim()) {
       setError('Title is required.');
@@ -28,6 +28,7 @@ function NewPost() {
           title,
           body: body || null,
           coverUrl: coverUrl || null,
+          published: publish,
         },
       });
       router.push('/blog/manage');
@@ -67,8 +68,15 @@ function NewPost() {
           </p>
         )}
         <div className="flex gap-3">
-          <Button onClick={create} disabled={submitting}>
+          <Button onClick={() => create(true)} disabled={submitting}>
             {submitting ? 'Publishing...' : 'Publish'}
+          </Button>
+          <Button
+            onClick={() => create(false)}
+            disabled={submitting}
+            className="bg-zinc-700 hover:bg-zinc-600"
+          >
+            {submitting ? 'Saving...' : 'Save as draft'}
           </Button>
         </div>
       </div>

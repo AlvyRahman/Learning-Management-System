@@ -16,17 +16,19 @@ function EditPost() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
+  const [isDraft, setIsDraft] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const res = await apiGet<BlogPost>('/blog-posts/' + postId);
+      const res = await apiGet<BlogPost>('/blog-posts/' + postId, { status: 'draft' });
       const post = res.data;
       setTitle(post.title || '');
       setBody(post.body || '');
       setCoverUrl(post.coverUrl || '');
+      setIsDraft(!post.publishedAt);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -38,7 +40,7 @@ function EditPost() {
     load();
   }, [load]);
 
-  const save = async () => {
+  const save = async (publish: boolean) => {
     setBusy(true);
     setError(null);
     try {
@@ -47,6 +49,7 @@ function EditPost() {
           title,
           body: body || null,
           coverUrl: coverUrl || null,
+          published: publish,
         },
       });
       router.push('/blog/manage');
@@ -71,7 +74,7 @@ function EditPost() {
       </Link>
       <div className="mt-4 mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-white">Edit post</h1>
-        <Badge>Published</Badge>
+        {isDraft ? <Badge>Draft</Badge> : <Badge>Published</Badge>}
       </div>
 
       <div className="flex flex-col gap-5">
@@ -97,9 +100,33 @@ function EditPost() {
           </p>
         )}
         <div className="flex gap-3">
-          <Button onClick={save} disabled={busy}>
-            {busy ? 'Saving...' : 'Save changes'}
-          </Button>
+          {isDraft ? (
+            <>
+              <Button onClick={() => save(true)} disabled={busy}>
+                {busy ? 'Publishing...' : 'Publish'}
+              </Button>
+              <Button
+                onClick={() => save(false)}
+                disabled={busy}
+                className="bg-zinc-700 hover:bg-zinc-600"
+              >
+                {busy ? 'Saving...' : 'Save draft'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => save(true)} disabled={busy}>
+                {busy ? 'Saving...' : 'Save changes'}
+              </Button>
+              <Button
+                onClick={() => save(false)}
+                disabled={busy}
+                className="bg-zinc-700 hover:bg-zinc-600"
+              >
+                {busy ? 'Unpublishing...' : 'Unpublish'}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

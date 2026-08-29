@@ -18,6 +18,7 @@ function BlogManage() {
     try {
       const res = await apiGet<BlogPost[]>('/blog-posts', {
         populate: 'author',
+        status: 'draft',
         sort: 'updatedAt:desc',
         'pagination[pageSize]': '200',
       });
@@ -81,7 +82,7 @@ function BlogManage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
                     <h2 className="truncate text-lg font-semibold text-white">{post.title}</h2>
-                    <Badge>Published</Badge>
+                    {post.publishedAt ? <Badge>Published</Badge> : <Badge>Draft</Badge>}
                   </div>
                   <p className="mt-1 text-xs text-zinc-500">
                     Updated {formatDate(post.updatedAt)}
