@@ -43,6 +43,28 @@ async function orderTaken(courseId: number, order: number, excludeId?: number): 
   return Boolean(existing);
 }
 
+async function userFromRequest(ctx: any): Promise<any> {
+  let user = ctx.state.user;
+  if (user) return user;
+  const header = ctx.request?.headers?.authorization || '';
+  const token = String(header).replace(/^Bearer\s+/i, '');
+  if (!token) return null;
+  try {
+    const payload = await strapi
+      .plugin('users-permissions')
+      .service('jwt')
+      .verify(token);
+    if (!payload?.id) return null;
+    user = await strapi.db
+      .query('plugin::users-permissions.user')
+      .findOne({ where: { id: payload.id }, populate: ['role'] });
+    if (user) ctx.state.user = user;
+    return user;
+  } catch {
+    return null;
+  }
+}
+
 function numericOrder(data: any): number | null {
   if (data.order === undefined || data.order === null) return null;
   const order = Number(data.order);
@@ -101,6 +123,19 @@ export default factories.createCoreController(uid, ({ strapi }) => ({
       courseId = course.id;
     }
 
+    if (courseId && (data.order === undefined || data.order === null)) {
+      const existing = await strapi.db.query(uid).findMany({
+        where: { course: courseId },
+        select: ['order'],
+        limit: 1000,
+      });
+      const maxOrder = (existing || []).reduce(
+        (max, l: any) => Math.max(max, typeof l.order === 'number' ? l.order : 0),
+        0
+      );
+      data.order = maxOrder + 1;
+    }
+
     const order = numericOrder(data);
     if (courseId && order !== null) {
       if (await orderTaken(courseId, order)) {
@@ -137,5 +172,64 @@ export default factories.createCoreController(uid, ({ strapi }) => ({
     }
 
     return super.update(ctx);
+  },
+
+  async reorder(ctx) {
+    const user = await userFromRequest(ctx);
+    if (!user) return ctx.forbidden('You must be logged in to reorder lessons');
+
+    const body = ctx.request.body?.data || ctx.request.body || {};
+    const courseDocumentId = body.course;
+    const lessonIds = body.lessons;
+
+    if (!courseDocumentId || !Array.isArray(lessonIds) || lessonIds.length === 0) {
+      return ctx.badRequest('course and lessons[] are required');
+    }
+
+    const roleType = await userRole(ctx);
+    if (
+      roleType !== 'admin' &&
+      roleType !== 'content_manager' &&
+      roleType !== 'instructor'
+    ) {
+      return ctx.forbidden('Only staff can reorder lessons');
+    }
+
+    const course = await strapi.db.query('api::course.course').findOne({
+      where: { documentId: courseDocumentId },
+      populate: ['instructor'],
+    });
+    if (!course) return ctx.notFound('Course not found');
+
+    if (roleType === 'instructor' && course.instructor?.id !== user.id) {
+      return ctx.forbidden('You can only reorder lessons in your own courses');
+    }
+
+    const lessons = await strapi.db.query(uid).findMany({
+      where: { course: course.id },
+      limit: 1000,
+    });
+    const idByDocumentId = new Map((lessons || []).map((l: any) => [l.documentId, l.id]));
+    const seen = new Set<string>();
+    for (const id of lessonIds) {
+      if (typeof id !== 'string' || !idByDocumentId.has(id) || seen.has(id)) {
+        return ctx.badRequest('lessons[] must list each lesson of the course exactly once');
+      }
+      seen.add(id);
+    }
+    if (seen.size !== (lessons || []).length) {
+      return ctx.badRequest('lessons[] must list every lesson of the course');
+    }
+
+    let position = 1;
+    for (const id of lessonIds) {
+      await strapi.db.query(uid).update({
+        where: { id: idByDocumentId.get(id) },
+        data: { order: position },
+      });
+      position += 1;
+    }
+
+    return { data: lessonIds };
   },
 }));
