@@ -126,3 +126,15 @@ export function EmptyState({ message }: { message: string }) {
     </div>
   );
 }
+
+export function ContentLoadError() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-red-800/60 bg-red-600/5 px-6 py-16 text-center">
+      <p className="text-lg font-semibold text-red-300">Couldn&apos;t load content</p>
+      <p className="mt-1 max-w-md text-sm leading-relaxed text-zinc-500">
+        The backend isn&apos;t responding right now — it may be waking up or temporarily unavailable.
+        Please try again in a minute.
+      </p>
+    </div>
+  );
+}

@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { apiGet } from '@/lib/api';
 import { QuizAttempt } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Card, EmptyState } from '@/components/ui';
+import { Card, ContentLoadError, EmptyState } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 
 function ResultsContent() {
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -22,7 +23,7 @@ function ResultsContent() {
         });
         setAttempts(enrol.data);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -36,6 +37,8 @@ function ResultsContent() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : error ? (
+        <ContentLoadError />
       ) : attempts.length === 0 ? (
         <EmptyState message="You haven't taken any quizzes yet." />
       ) : (

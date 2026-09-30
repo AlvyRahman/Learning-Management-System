@@ -6,7 +6,7 @@ import { apiGet } from '@/lib/api';
 import { Course, Enrollment, Progress } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Card, EmptyState } from '@/components/ui';
+import { Card, ContentLoadError, EmptyState } from '@/components/ui';
 
 interface AttemptRow {
   score: number;
@@ -26,6 +26,7 @@ function ProgressDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selected, setSelected] = useState('');
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [coursesError, setCoursesError] = useState(false);
   const [rows, setRows] = useState<StudentRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);
 
@@ -45,7 +46,7 @@ function ProgressDashboard() {
         setCourses(filtered);
         if (filtered.length > 0) setSelected(filtered[0].documentId);
       } catch {
-        // ignore
+        setCoursesError(true);
       } finally {
         setLoadingCourses(false);
       }
@@ -148,6 +149,8 @@ function ProgressDashboard() {
 
       {loadingCourses ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : coursesError ? (
+        <ContentLoadError />
       ) : courses.length === 0 ? (
         <EmptyState
           message={isInstructor ? "You haven't created any courses yet." : 'No courses yet.'}

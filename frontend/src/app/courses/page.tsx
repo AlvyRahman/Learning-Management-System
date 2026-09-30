@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { apiGet } from '@/lib/api';
 import { Course } from '@/lib/types';
-import { CourseCard, EmptyState } from '@/components/ui';
+import { CourseCard, ContentLoadError, EmptyState } from '@/components/ui';
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -15,7 +16,7 @@ export default function CoursesPage() {
         const res = await apiGet<Course[]>('/courses', { populate: 'instructor', sort: 'createdAt:desc' });
         setCourses(res.data);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -29,6 +30,8 @@ export default function CoursesPage() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : error ? (
+        <ContentLoadError />
       ) : courses.length === 0 ? (
         <EmptyState message="No courses published yet." />
       ) : (

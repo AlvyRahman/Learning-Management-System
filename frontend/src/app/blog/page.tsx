@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiGet } from '@/lib/api';
 import { BlogPost } from '@/lib/types';
-import { Card, EmptyState } from '@/components/ui';
+import { Card, ContentLoadError, EmptyState } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -20,7 +21,7 @@ export default function BlogPage() {
         });
         setPosts(res.data);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -34,6 +35,8 @@ export default function BlogPage() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : error ? (
+        <ContentLoadError />
       ) : posts.length === 0 ? (
         <EmptyState message="No published posts yet." />
       ) : (

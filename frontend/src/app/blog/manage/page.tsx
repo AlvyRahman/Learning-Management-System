@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { apiGet, apiDelete, errorMessage } from '@/lib/api';
 import { BlogPost } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Card, Badge, EmptyState } from '@/components/ui';
+import { Card, Badge, ContentLoadError, EmptyState } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 
 function BlogManage() {
@@ -13,6 +13,7 @@ function BlogManage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -24,7 +25,7 @@ function BlogManage() {
       });
       setPosts(res.data);
     } catch {
-      // ignore
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -72,6 +73,8 @@ function BlogManage() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : loadError ? (
+        <ContentLoadError />
       ) : posts.length === 0 ? (
         <EmptyState message="No blog posts yet." />
       ) : (

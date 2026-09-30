@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { apiGet } from '@/lib/api';
 import { Course, BlogPost } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
-import { CourseCard, Card, EmptyState } from '@/components/ui';
+import { CourseCard, Card, ContentLoadError, EmptyState } from '@/components/ui';
 import { formatDate } from '@/lib/utils';
 
 export default function HomePage() {
@@ -13,6 +13,7 @@ export default function HomePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -24,7 +25,7 @@ export default function HomePage() {
         setCourses(c.data);
         setPosts(b.data);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -70,6 +71,8 @@ export default function HomePage() {
         </div>
         {loading ? (
           <p className="text-zinc-400">Loading...</p>
+        ) : error ? (
+          <ContentLoadError />
         ) : courses.length === 0 ? (
           <EmptyState message="No courses published yet." />
         ) : (
@@ -94,7 +97,9 @@ export default function HomePage() {
             View all →
           </Link>
         </div>
-        {posts.length === 0 ? (
+        {error ? (
+          <ContentLoadError />
+        ) : posts.length === 0 ? (
           <EmptyState message="No blog posts yet." />
         ) : (
           <div className="grid gap-6 md:grid-cols-3">

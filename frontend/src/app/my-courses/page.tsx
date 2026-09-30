@@ -6,7 +6,7 @@ import { apiGet } from '@/lib/api';
 import { Course, Enrollment, Progress } from '@/lib/types';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/components/AuthProvider';
-import { Card, EmptyState } from '@/components/ui';
+import { Card, ContentLoadError, EmptyState } from '@/components/ui';
 
 interface EnrolledCourse {
   course: Course;
@@ -18,6 +18,7 @@ function MyCoursesContent() {
   const { user } = useAuth();
   const [list, setList] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -54,7 +55,7 @@ function MyCoursesContent() {
 
         setList(merged);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -68,6 +69,8 @@ function MyCoursesContent() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : error ? (
+        <ContentLoadError />
       ) : list.length === 0 ? (
         <EmptyState message="You haven't enrolled in any courses yet." />
       ) : (

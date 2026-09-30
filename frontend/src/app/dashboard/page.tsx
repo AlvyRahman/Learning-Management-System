@@ -6,12 +6,13 @@ import { apiGet } from '@/lib/api';
 import { Course } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Card, Badge, EmptyState } from '@/components/ui';
+import { Card, Badge, ContentLoadError, EmptyState } from '@/components/ui';
 
 function DashboardContent() {
   const { role, user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const isInstructor = role === 'instructor';
 
@@ -28,7 +29,7 @@ function DashboardContent() {
           : res.data;
         setCourses(filtered);
       } catch {
-        // ignore
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -56,6 +57,8 @@ function DashboardContent() {
 
       {loading ? (
         <p className="text-zinc-400">Loading...</p>
+      ) : error ? (
+        <ContentLoadError />
       ) : courses.length === 0 ? (
         <EmptyState message={isInstructor ? "You haven't created any courses yet." : 'No courses yet.'} />
       ) : (
