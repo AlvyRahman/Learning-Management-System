@@ -10,8 +10,8 @@ A full-stack Learning Management System built with **Next.js** and **Strapi**, s
 ## Tech Stack
 
 - **Frontend:** Next.js 16 (App Router), TypeScript, Tailwind CSS v4 — Vercel
-- **Backend:** Strapi v5 (TypeScript) — Railway
-- **Database:** PostgreSQL (local: Docker · prod: Railway managed)
+- **Backend:** Strapi v5 (TypeScript) — Render
+- **Database:** PostgreSQL (local: Docker · prod: Neon)
 
 ## Running Locally
 
