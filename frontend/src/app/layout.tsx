@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BackendWakeBanner from "@/components/BackendWakeBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <BackendWakeBanner />
         </AuthProvider>
       </body>
     </html>

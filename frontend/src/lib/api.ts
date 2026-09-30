@@ -8,6 +8,9 @@ function normalizeUrl(url: string): string {
 const API_URL = normalizeUrl(process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337');
 
 import type { StrapiUser } from './types';
+import { signalSlowStart, signalSlowEnd } from './backendStatus';
+
+const SLOW_THRESHOLD_MS = 5000;
 
 export function getToken() {
   if (typeof window === 'undefined') return null;
@@ -64,23 +67,36 @@ export function errorMessage(err: unknown): string {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}/api${path}`, {
-    ...options,
-    headers: { ...authHeaders(), ...(options.headers || {}) },
-  });
+  let timerFired = false;
+  let succeeded = false;
+  const timer = setTimeout(() => {
+    timerFired = true;
+    signalSlowStart();
+  }, SLOW_THRESHOLD_MS);
 
-  const body = await res.json().catch(() => null);
+  try {
+    const res = await fetch(`${API_URL}/api${path}`, {
+      ...options,
+      headers: { ...authHeaders(), ...(options.headers || {}) },
+    });
 
-  if (!res.ok) {
-    const errBody = (body ?? null) as StrapiErrorBody | null;
-    const message =
-      errBody?.error?.message ||
-      errBody?.error?.details?.errors?.map((e) => e.message).join(', ') ||
-      `Request failed with status ${res.status}`;
-    throw new ApiError(message, res.status);
+    const body = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errBody = (body ?? null) as StrapiErrorBody | null;
+      const message =
+        errBody?.error?.message ||
+        errBody?.error?.details?.errors?.map((e) => e.message).join(', ') ||
+        `Request failed with status ${res.status}`;
+      throw new ApiError(message, res.status);
+    }
+
+    succeeded = true;
+    return body as T;
+  } finally {
+    clearTimeout(timer);
+    if (timerFired) signalSlowEnd(succeeded);
   }
-
-  return body as T;
 }
 
 async function requestData<T>(path: string, options: RequestInit = {}): Promise<StrapiResponse<T>> {
