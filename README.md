@@ -5,7 +5,7 @@ A full-stack Learning Management System built with **Next.js** and **Strapi**, s
 ## Live
 
 - **Frontend:** https://learningcentral.vercel.app
-- **Backend:** https://learning-management-system-production-6ae0.up.railway.app
+- **Backend:** https://learning-management-system-ulu1.onrender.com
 
 ## Tech Stack
 
